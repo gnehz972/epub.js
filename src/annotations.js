@@ -13,6 +13,7 @@ class Annotations {
 		this.rendition = rendition;
 		this.highlights = [];
 		this.underlines = [];
+		this.wavelines = [];
 		this.marks = [];
 		this._annotations = {};
 		this._annotationsBySectionIndex = {};
@@ -23,7 +24,7 @@ class Annotations {
 
 	/**
 	 * Add an annotation to store
-	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "waveline", "mark"
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
 	 * @param {function} [cb] Callback after annotation is added
@@ -67,7 +68,7 @@ class Annotations {
 	/**
 	 * Remove an annotation from store
 	 * @param {EpubCFI} cfiRange EpubCFI range the annotation is attached to
-	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "waveline", "mark"
 	 */
 	remove (cfiRange, type) {
 		let hash = encodeURI(cfiRange + type);
@@ -130,6 +131,19 @@ class Annotations {
 	 */
 	underline (cfiRange, data, cb, className, styles) {
 		return this.add("underline", cfiRange, data, cb, className, styles);
+	}
+
+
+	/**
+	 * Add a waveline to the store
+	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+	 * @param {object} data Data to assign to annotation
+	 * @param {function} cb Callback after annotation is clicked
+	 * @param {string} className CSS class to assign to annotation
+	 * @param {object} styles CSS styles to assign to annotation
+	 */
+	waveline (cfiRange, data, cb, className, styles) {
+		return this.add("waveline", cfiRange, data, cb, className, styles);
 	}
 
 	/**
@@ -203,7 +217,7 @@ class Annotations {
  * Annotation object
  * @class
  * @param {object} options
- * @param {string} options.type Type of annotation to add: "highlight", "underline", "mark"
+ * @param {string} options.type Type of annotation to add: "highlight", "underline", "waveline", "mark"
  * @param {EpubCFI} options.cfiRange EpubCFI range to attach annotation to
  * @param {object} options.data Data to assign to annotation
  * @param {int} options.sectionIndex Index in the Spine of the Section annotation belongs to
@@ -253,6 +267,8 @@ class Annotation {
 			result = view.highlight(cfiRange, data, cb, className, styles);
 		} else if (type === "underline") {
 			result = view.underline(cfiRange, data, cb, className, styles);
+		} else if (type === "waveline") {
+			result = view.waveline(cfiRange, data, cb, className, styles);
 		} else if (type === "mark") {
 			result = view.mark(cfiRange, data, cb);
 		}
@@ -273,8 +289,11 @@ class Annotation {
 		if (view) {
 			if (type === "highlight") {
 				result = view.unhighlight(cfiRange);
-			} else if (type === "underline") {
+			} 
+			else if (type === "underline") {
 				result = view.ununderline(cfiRange);
+			} else if (type === "waveline") {
+				result = view.unwaveline(cfiRange);
 			} else if (type === "mark") {
 				result = view.unmark(cfiRange);
 			}

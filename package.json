@@ -62,7 +62,7 @@
     "jszip": "^3.7.1",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
-    "marks-pane": "^1.0.9",
+    "marks-pane": "https://github.com/gnehz972/marks.git#d77594d493ba73aa1ac78d79b764d09d1a7f57cf",
     "path-webpack": "0.0.3"
   }
 }

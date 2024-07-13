@@ -3,7 +3,7 @@ import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlo
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
-import { Pane, Highlight, Underline } from "marks-pane";
+import { Pane, Highlight, Underline, Waveline } from "marks-pane";
 
 class IframeView {
 	constructor(section, options) {
@@ -47,6 +47,7 @@ class IframeView {
 		this.pane = undefined;
 		this.highlights = {};
 		this.underlines = {};
+		this.wavelines = {};
 		this.marks = {};
 
 	}
@@ -668,6 +669,38 @@ class IframeView {
 		return h;
 	}
 
+	waveline(cfiRange, data={}, cb, className = "epubjs-wl", styles = {}) {
+		if (!this.contents) {
+			return;
+		}
+		const attributes = Object.assign({"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
+		let range = this.contents.range(cfiRange);
+		let emitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
+		};
+
+		data["epubcfi"] = cfiRange;
+
+		if (!this.pane) {
+			this.pane = new Pane(this.iframe, this.element);
+		}
+
+		let m = new Waveline(range, className, data, attributes);
+		let h = this.pane.addMark(m);
+
+		this.wavelines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
+
+		h.element.setAttribute("ref", className);
+		h.element.addEventListener("click", emitter);
+		h.element.addEventListener("touchstart", emitter);
+
+		if (cb) {
+			h.element.addEventListener("click", cb);
+			h.element.addEventListener("touchstart", cb);
+		}
+		return h;
+	}
+
 	mark(cfiRange, data={}, cb) {
 		if (!this.contents) {
 			return;
@@ -785,6 +818,21 @@ class IframeView {
 		}
 	}
 
+	unwaveline(cfiRange) {
+		let item;
+		if (cfiRange in this.wavelines) {
+			item = this.wavelines[cfiRange];
+			this.pane.removeMark(item.mark);
+			item.listeners.forEach((l) => {
+				if (l) {
+					item.element.removeEventListener("click", l);
+					item.element.removeEventListener("touchstart", l);
+				};
+			});
+			delete this.wavelines[cfiRange];
+		}
+	}
+
 	unmark(cfiRange) {
 		let item;
 		if (cfiRange in this.marks) {
@@ -808,6 +856,10 @@ class IframeView {
 
 		for (let cfiRange in this.underlines) {
 			this.ununderline(cfiRange);
+		}
+
+		for (let cfiRange in this.wavelines) {
+			this.unwaveline(cfiRange);
 		}
 
 		for (let cfiRange in this.marks) {
