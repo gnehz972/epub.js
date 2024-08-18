@@ -520,7 +520,7 @@ class Book {
 	 * @param {Packaging} packaging
 	 */
 	loadNavigation(packaging) {
-		let navPath = packaging.navPath || packaging.ncxPath;
+		let navPath = packaging.ncxPath || packaging.navPath;
 		let toc = packaging.toc;
 
 		// From json manifest
